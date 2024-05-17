@@ -7,6 +7,6 @@ export async function disableDraftMode() {
   await Promise.allSettled([
     draftMode().disable(),
     // Simulate a delay to show the loading state
-    new Promise((resolve) => setTimeout(resolve, 1000)),
+    new Promise((resolve) => setTimeout(resolve, 1000)), 
   ]);
 }
