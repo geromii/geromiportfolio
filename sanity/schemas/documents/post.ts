@@ -16,96 +16,111 @@ import authorType from "./author";
 
  */
 
-export default defineType({
-  name: "post",
-  title: "Post",
-  icon: DocumentTextIcon,
-  type: "document",
-  fields: [
-    defineField({
-      name: "title",
-      title: "Title",
-      type: "string",
-      validation: (rule) => rule.required(),
-    }),
-    defineField({
-      name: "slug",
-      title: "Slug",
-      type: "slug",
-      description: "A slug is required for the post to show up in the preview",
-      options: {
-        source: "title",
-        maxLength: 96,
-        isUnique: (value, context) => context.defaultIsUnique(value, context),
-      },
-      validation: (rule) => rule.required(),
-    }),
-    defineField({
-      name: "content",
-      title: "Content",
-      type: "array",
-      of: [{ type: "block" }],
-    }),
-    defineField({
-      name: "excerpt",
-      title: "Excerpt",
-      type: "text",
-    }),
-    defineField({
-      name: "coverImage",
-      title: "Cover Image",
-      type: "image",
-      options: {
-        hotspot: true,
-        aiAssist: {
-          imageDescriptionField: "alt",
+  export default defineType({
+    name: "post",
+    title: "Post",
+    icon: DocumentTextIcon,
+    type: "document",
+    fields: [
+      defineField({
+        name: "title",
+        title: "Title",
+        type: "string",
+        validation: (rule) => rule.required(),
+      }),
+      defineField({
+        name: "slug",
+        title: "Slug",
+        type: "slug",
+        description: "A slug is required for the post to show up in the preview",
+        options: {
+          source: "title",
+          maxLength: 96,
+          isUnique: (value, context) => context.defaultIsUnique(value, context),
         },
-      },
-      fields: [
-        {
-          name: "alt",
-          type: "string",
-          title: "Alternative text",
-          description: "Important for SEO and accessiblity.",
-          validation: (rule) => {
-            return rule.custom((alt, context) => {
-              if ((context.document?.coverImage as any)?.asset?._ref && !alt) {
-                return "Required";
-              }
-              return true;
-            });
+        validation: (rule) => rule.required(),
+      }),
+      defineField({
+        name: "content",
+        title: "Content",
+        type: "array",
+        of: [{ type: "block" }],
+      }),
+      defineField({
+        name: "excerpt",
+        title: "Excerpt",
+        type: "text",
+      }),
+      defineField({
+        name: "coverImage",
+        title: "Cover Image",
+        type: "image",
+        options: {
+          hotspot: true,
+          aiAssist: {
+            imageDescriptionField: "alt",
           },
         },
-      ],
-      validation: (rule) => rule.required(),
-    }),
-    defineField({
-      name: "date",
-      title: "Date",
-      type: "datetime",
-      initialValue: () => new Date().toISOString(),
-    }),
-    defineField({
-      name: "author",
-      title: "Author",
-      type: "reference",
-      to: [{ type: authorType.name }],
-    }),
-  ],
-  preview: {
-    select: {
-      title: "title",
-      author: "author.name",
-      date: "date",
-      media: "coverImage",
+        fields: [
+          {
+            name: "alt",
+            type: "string",
+            title: "Alternative text",
+            description: "Important for SEO and accessiblity.",
+            validation: (rule) => {
+              return rule.custom((alt, context) => {
+                if ((context.document?.coverImage as any)?.asset?._ref && !alt) {
+                  return "Required";
+                }
+                return true;
+              });
+            },
+          },
+        ],
+        validation: (rule) => rule.required(),
+      }),
+      defineField({
+        name: "date",
+        title: "Date",
+        type: "datetime",
+        initialValue: () => new Date().toISOString(),
+      }),
+      defineField({
+        name: "author",
+        title: "Author",
+        type: "reference",
+        to: [{ type: authorType.name }],
+      }),
+      defineField({
+        name: "tags",
+        title: "Tags",
+        type: "array",
+        of: [{ type: "string" }],
+        description: "Tags associated with the post",
+      }),
+      defineField({
+        name: "priority",
+        title: "Priority",
+        type: "number",
+        description: "Priority of the post, 1 to 3 where 3 is the highest",
+        validation: (rule) => rule.required().min(1).max(3),
+      }),
+    ],
+    preview: {
+      select: {
+        title: "title",
+        author: "author.name",
+        date: "date",
+        media: "coverImage",
+      },
+      prepare({ title, media, author, date }) {
+        const subtitles = [
+          author && `by ${author}`,
+          date && `on ${format(parseISO(date), "LLL d, yyyy")}`,
+        ].filter(Boolean);
+  
+        return { title, media, subtitle: subtitles.join(" ") };
+      },
     },
-    prepare({ title, media, author, date }) {
-      const subtitles = [
-        author && `by ${author}`,
-        date && `on ${format(parseISO(date), "LLL d, yyyy")}`,
-      ].filter(Boolean);
-
-      return { title, media, subtitle: subtitles.join(" ") };
-    },
-  },
-});
+  });
+  
